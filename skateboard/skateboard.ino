@@ -298,25 +298,24 @@ void loop() {
     btInput.trim();
 
     if (btInput.toInt() != mode) {
-      reset();
-      mode = btInput.toInt();
+      SerialBT.println(btInput.toInt());
+      if(btInput.toInt() == INDICATOR_ON_OFF){
+        IndicatorOn = !IndicatorOn;
+      }
+      else if(btInput.toInt() == ONOFF){
+        OFF = !OFF;
+      }
+      else{
+        reset();
+        mode = btInput.toInt();
+      }
     }
-  }
-
- if(mode == ONOFF){
-    OFF = !OFF;
   }
 
   if(!OFF){
     reset(); 
     return;
   }
-
-
-  if(mode == INDICATOR_ON_OFF){
-    IndicatorOn = !IndicatorOn;
-  }
-
  
   if(IndicatorOn == true){
     if(y > 2){
@@ -336,21 +335,5 @@ void loop() {
     pickMode();
   }
 
-
- SerialBT.println(mode);
- Serial.println(mode);
-
-//  if(mode == DarkSparkleMode){
-//    dark_sparkle();
-//    SerialBT.println("Sparkle");
-//  }
-
-//  if(mode == RainbowMode){
-//    rainbow();
-//    SerialBT.println("rainbow");
-//  }
-
-
   pixel.show();
-  //delay(1000);
 }
