@@ -4,6 +4,7 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <Adafruit_NeoPixel.h>
+#include "BluetoothSerial.h"
 
 #define NUM_PIXELS 85
 #define PIN_NEO_PIXEL 2
@@ -11,17 +12,22 @@ Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUM_PIXELS, PIN_NEO_PIXEL, NEO_GRB +
 Adafruit_NeoPixel pixel2 = Adafruit_NeoPixel(16, 25, NEO_GRB + NEO_KHZ800);
 
 Adafruit_MPU6050 mpu;
+BluetoothSerial SerialBT;
+int mode = -1;
+String btInput;
 
 // DEFINE ALL GLOBALS HERE
-#define MODE0 0
-#define MODE1 1
-#define MODE2 2
-#define MODE3 3
-#define MODE4 4
-#define MODE5 5
+#define RainbowMode 0
+#define DarkSparkleMode 1
+#define LaserMode 2
+#define HeadlightMode 3
+#define ONOFF 4
+#define INDICATOR_ON_OFF 5
 #define MODE6 6
 #define MODE7 7
-#define INDICATOR_ON 8
+#define MODE8 8
+bool IndicatorOn = false;
+bool OFF = false;
 
 double accel_readings[3][5];
 double gyro_readings[3][5];
@@ -581,12 +587,23 @@ void left_indicate(){
   reset();
 }
 
+void pickMode(){
+  switch (mode){
+    case 0:
+      rainbow();
+    break;
+    case 1:
+      dark_sparkle();
+    break;
+  }
+}
+
 void setup(void) {
   Serial.begin(115200);
+  SerialBT.begin("ESP32Skateboard");
   while (!Serial)
     delay(10);
 
-  // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
     while (1) {
@@ -635,6 +652,7 @@ void setup(void) {
 
 // when stable there should be x ~= 0, y ~= 0, z ~= 9.8
 void loop() { 
+<<<<<<< HEAD
   // get_acceleration();
   // double x = accel[0];
   // double y = accel[1];
@@ -666,6 +684,72 @@ void loop() {
   // four_corners();
   // sun_and_moon();
   fire();
+=======
+  update_brightness();
+  get_acceleration();
+  double x = accel[0];
+  double y = accel[1];
+  double z = accel[2]; 
+
+  if (SerialBT.available()) {
+    btInput = SerialBT.readString();
+    btInput.trim();
+
+    if (btInput.toInt() != mode) {
+      reset();
+      mode = btInput.toInt();
+    }
+  }
+
+ if(mode == ONOFF){
+    OFF = !OFF;
+  }
+
+  if(!OFF){
+    reset(); 
+    return;
+  }
+
+
+  if(mode == INDICATOR_ON_OFF){
+    IndicatorOn = !IndicatorOn;
+  }
+
+ 
+  if(IndicatorOn == true){
+    if(y > 2){
+      reset();
+      left_indicate();
+      reset();
+    }
+    else if(y < -2){
+      reset();
+      right_indicate();
+      reset();
+    }else{
+      pickMode();
+    }
+  }
+  else{
+    pickMode();
+  }
+
+
+ SerialBT.println(mode);
+ Serial.println(mode);
+
+//  if(mode == DarkSparkleMode){
+//    dark_sparkle();
+//    SerialBT.println("Sparkle");
+//  }
+
+//  if(mode == RainbowMode){
+//    rainbow();
+//    SerialBT.println("rainbow");
+//  }
+
+
+>>>>>>> 3e91ed092005d68217fa6fdbb5bb545cc4900123
   pixel.show();
-  // delay(1000);
+  //delay(1000);
 }
